@@ -1,28 +1,32 @@
-# Multi-stage Dockerfile for rust-api-gateway
+# ===== Builder Stage =====
+FROM rust:1.87 AS builder
 
-# Builder
-FROM rust:1.70 as builder
 WORKDIR /app
 
-# Copy manifests first for caching
-COPY Cargo.toml Cargo.lock ./
-COPY config ./config
-COPY src ./src
+# Copy project files
+COPY . .
 
 # Build release binary
 RUN cargo build --release
 
-# Runtime image
-FROM debian:buster-slim
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# ===== Runtime Stage =====
+FROM debian:bookworm-slim
 
-# Copy the binary from builder
+# Install SSL certificates
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy compiled binary
 COPY --from=builder /app/target/release/rust-api-gateway /usr/local/bin/rust-api-gateway
 
-# Runtime defaults
+# Environment variables
 ENV RUST_LOG=info
 ENV HOST=0.0.0.0
 ENV PORT=8080
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/local/bin/rust-api-gateway"]
+
+CMD ["rust-api-gateway"]
