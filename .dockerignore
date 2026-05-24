@@ -1,0 +1,9 @@
+target
+**/target
+.git
+.gitignore
+.dockerignore
+*.rs.bk
+**/*.rs.bk
+.env
+*.log

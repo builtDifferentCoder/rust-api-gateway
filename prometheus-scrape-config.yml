@@ -1,0 +1,40 @@
+# Example Prometheus Configuration for API Gateway
+# Add this to your prometheus.yml global scrape configs
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+# Example queries for PromQL:
+# 
+# Total requests:
+#   rate(api_gateway_http_requests_total[5m])
+#
+# Requests per route:
+#   rate(api_gateway_http_requests_per_route[5m])
+#
+# Response status distribution:
+#   api_gateway_http_response_status
+#
+# Request latency (p95):
+#   histogram_quantile(0.95, rate(api_gateway_http_request_duration_seconds_bucket[5m]))
+#
+# Request latency (p99):
+#   histogram_quantile(0.99, rate(api_gateway_http_request_duration_seconds_bucket[5m]))
+#
+# Average request duration:
+#   rate(api_gateway_http_request_duration_seconds_sum[5m]) / rate(api_gateway_http_request_duration_seconds_count[5m])
+#
+# Requests per method:
+#   sum(rate(api_gateway_http_requests_total[5m])) by (method)
+#
+# Error rate (5xx responses):
+#   sum(rate(api_gateway_http_requests_total{status=~"5.."}[5m])) / sum(rate(api_gateway_http_requests_total[5m]))
